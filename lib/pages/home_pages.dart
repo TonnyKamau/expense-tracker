@@ -157,13 +157,8 @@ class _HomePageState extends State<HomePage> {
                           'Amount: \$${expense.amount.toStringAsFixed(2)}',
                         ),
                         trailing: Text(
-                          DateFormat('yyyy-MM-dd – hh:mm a').format(
-                            DateTime.fromMillisecondsSinceEpoch(
-                                    expense.date as int )
-                                .toLocal(),
-                          ),
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 12),
+                          DateFormat('yyyy-MM-dd – hh:mm a')
+                              .format(expense.date),
                         ),
                       ),
                     );

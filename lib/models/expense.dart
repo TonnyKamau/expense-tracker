@@ -29,22 +29,21 @@ class Expense {
   })  : assert(title.trim().isNotEmpty, 'Title cannot be empty'),
         assert(amount > 0, 'Amount must be positive');
 
-  /// Creates an [Expense] instance from a database map.
   factory Expense.fromJson(Map<String, dynamic> map) {
     return Expense(
       id: map[columnId] as int?,
       title: map[columnTitle] as String,
       amount: (map[columnAmount] as num).toDouble(),
-      date: DateTime.parse(map[columnDate] as String),
+      date: DateTime.fromMillisecondsSinceEpoch(map[columnDate] as int),
     );
   }
 
-  /// Converts the expense to a map for database storage.
+  // Convert Expense to a map for database storage
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       columnTitle: title,
       columnAmount: amount,
-      columnDate: date.toIso8601String(),
+      columnDate: date.millisecondsSinceEpoch,
     };
 
     if (id != null) {
@@ -52,7 +51,7 @@ class Expense {
     }
 
     return map;
-  }
+  } // Creates an [Expense] instance from a database map.
 
   /// Creates a copy of this expense with optionally updated fields.
   Expense copyWith({
