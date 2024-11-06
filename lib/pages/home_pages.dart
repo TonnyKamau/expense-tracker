@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:myapp/helpers/database.dart';
+import 'package:myapp/models/models.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,7 +17,20 @@ class _HomePageState extends State<HomePage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController amountController = TextEditingController();
 
-// open new expense box
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<AppDatabase>(context, listen: false).getAllExpenses();
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    amountController.dispose();
+    super.dispose();
+  }
+
+  // open new expense box
   void openNewExpenseBox() {
     showDialog(
       context: context,
@@ -32,6 +49,7 @@ class _HomePageState extends State<HomePage> {
                 textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
                   hintText: 'Name',
+                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -42,7 +60,10 @@ class _HomePageState extends State<HomePage> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                 ],
-                decoration: const InputDecoration(hintText: 'Amount'),
+                decoration: const InputDecoration(
+                  hintText: 'Amount',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
@@ -53,24 +74,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _cancleButton() {
-    return MaterialButton(
+    return TextButton(
       onPressed: () {
         Navigator.pop(context);
         titleController.clear();
         amountController.clear();
       },
-      child: Text('Cancel'),
+      child: const Text('Cancel'),
     );
   }
 
   Widget _submitButton() {
-    return MaterialButton(
-      onPressed: () {
-        // TODO: Handle expense submission
+    return TextButton(
+      onPressed: () async {
         if (titleController.text.isNotEmpty &&
             amountController.text.isNotEmpty) {
-          // Process the expense
           Navigator.pop(context);
+          Expense newExpense = Expense(
+            title: titleController.text,
+            amount: double.parse(amountController.text),
+            date: DateTime.now(),
+          );
+          await context.read<AppDatabase>().createExpense(newExpense);
+          titleController.clear();
+          amountController.clear();
         }
       },
       child: const Text('Add Expense'),
@@ -79,36 +106,74 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expense Tracker'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const SizedBox(
-              height: 20,
+    return Consumer<AppDatabase>(
+      builder: (context, database, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Expense Tracker'),
+          ),
+          drawer: Drawer(
+            child: ListView(
+              children: [
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Icon(
+                    Icons.settings,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text('Settings'),
+                  onTap: () {
+                    Get.toNamed('/settings');
+                  },
+                ),
+              ],
             ),
-            ListTile(
-              leading: Icon(
-                Icons.settings,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: const Text('Settings'),
-              onTap: () {
-                Get.toNamed('/settings');
-              },
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openNewExpenseBox,
-        child: const Icon(Icons.add),
-      ),
-      body: const Center(
-        child: Text('Home Page'),
-      ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: openNewExpenseBox,
+            child: const Icon(Icons.add),
+          ),
+          body: FutureBuilder<List<Expense>>(
+            future: database.getAllExpenses(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No expenses found'));
+              } else {
+                final expenses = snapshot.data!;
+                return ListView.builder(
+                  itemCount: expenses.length,
+                  itemBuilder: (context, index) {
+                    final expense = expenses[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                      child: ListTile(
+                        title: Text(expense.title),
+                        subtitle: Text(
+                          'Amount: \$${expense.amount.toStringAsFixed(2)}',
+                        ),
+                        trailing: Text(
+                          DateFormat('yyyy-MM-dd – hh:mm a').format(
+                            DateTime.fromMillisecondsSinceEpoch(
+                                    expense.date as int )
+                                .toLocal(),
+                          ),
+                          style:
+                              const TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }
+            },
+          ),
+        );
+      },
     );
   }
 }
