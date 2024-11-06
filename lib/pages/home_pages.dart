@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _cancleButton() {
-    return TextButton(
+    return MaterialButton(
       onPressed: () {
         Navigator.pop(context);
         titleController.clear();
@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _submitButton() {
-    return TextButton(
+    return MaterialButton(
       onPressed: () async {
         if (titleController.text.isNotEmpty &&
             amountController.text.isNotEmpty) {
