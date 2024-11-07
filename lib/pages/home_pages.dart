@@ -110,12 +110,21 @@ class _HomePageState extends State<HomePage> {
       builder: (context, database, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Expense Tracker'),
+            title: const Text('Expenses'),
           ),
           drawer: Drawer(
             child: ListView(
               children: [
-                const SizedBox(height: 20),
+                const Padding(
+                  padding: EdgeInsets.only(top: 20.0, bottom: 10.0, left: 20.0),
+                  child: Text(
+                    'Expense Tracker',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
                 ListTile(
                   leading: Icon(
                     Icons.settings,
@@ -152,13 +161,27 @@ class _HomePageState extends State<HomePage> {
                       margin: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 16),
                       child: ListTile(
-                        title: Text(expense.title),
+                        title: Text(
+                          expense.title.toUpperCase(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                         subtitle: Text(
-                          'Amount: \$${expense.amount.toStringAsFixed(2)}',
+                          'Amount: ${NumberFormat.currency(symbol: "\$", locale: 'en_US', decimalDigits: 2).format(expense.amount)}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 12,
+                          ),
                         ),
                         trailing: Text(
                           DateFormat('yyyy-MM-dd – hh:mm a')
                               .format(expense.date),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     );
