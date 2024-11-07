@@ -162,7 +162,7 @@ class _HomePageState extends State<HomePage> {
                           vertical: 8, horizontal: 16),
                       child: ListTile(
                         title: Text(
-                          expense.title.toUpperCase(),
+                          '${expense.title[0].toUpperCase()}${expense.title.substring(1)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,
