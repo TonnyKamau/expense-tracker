@@ -264,7 +264,7 @@ class _HomePageState extends State<HomePage> {
                         title:
                             '${expense.title[0].toUpperCase()}${expense.title.substring(1)}',
                         subtitle:
-                            'Amount: ${NumberFormat.currency(symbol: "\$", locale: 'en_US', decimalDigits: 2).format(expense.amount)}',
+                            'Amount: ${NumberFormat.currency(symbol: "\ksh", locale: 'en_KE', decimalDigits: 2).format(expense.amount)}',
                         trailing: DateFormat('yyyy-MM-dd – hh:mm a')
                             .format(expense.date),
                         onDeletePressed: () => openDeleteExpenseBox(expense),
