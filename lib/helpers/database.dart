@@ -41,7 +41,7 @@ class AppDatabase extends ChangeNotifier {
   Future<Expense> createExpense(Expense expense) async {
     final db = await instance.database;
     final id = await db.insert(tableName, expense.toJson());
-    notifyListeners();  // Notify listeners of the change
+    notifyListeners(); // Notify listeners of the change
     return expense.copyWith(id: id);
   }
 
@@ -76,7 +76,7 @@ class AppDatabase extends ChangeNotifier {
       where: '$columnId = ?',
       whereArgs: [expense.id],
     );
-    notifyListeners();  // Notify listeners of the change
+    notifyListeners(); // Notify listeners of the change
     return result;
   }
 
@@ -87,7 +87,7 @@ class AppDatabase extends ChangeNotifier {
       where: '$columnId = ?',
       whereArgs: [id],
     );
-    notifyListeners();  // Notify listeners of the change
+    notifyListeners(); // Notify listeners of the change
     return result;
   }
 

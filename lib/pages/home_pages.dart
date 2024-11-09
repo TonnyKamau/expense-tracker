@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
 import 'package:provider/provider.dart';
-
 import '../models/models.dart';
+import '../widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,7 +31,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // open new expense box
   void openNewExpenseBox() {
     showDialog(
       context: context,
@@ -70,12 +68,75 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        actions: [_cancleButton(), _submitButton()],
+        actions: [_cancelButton(), _submitButton()],
       ),
     );
   }
 
-  Widget _cancleButton() {
+  void openEditExpenseBox(Expense expense) {
+    // Pre-fill the controllers with existing values
+    titleController.text = expense.title;
+    amountController.text = expense.amount.toString();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Text('Edit Expense'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ],
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [_cancelButton(), _editButton(expense)],
+      ),
+    );
+  }
+
+  void openDeleteExpenseBox(Expense expense) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Text('Delete Expense'),
+        content: const Text(
+          'Are you sure you want to delete this expense?',
+        ),
+        actions: [
+          _cancelButton(),
+          _deleteButton(expense.id!),
+        ],
+      ),
+    );
+  }
+
+  Widget _cancelButton() {
     return MaterialButton(
       onPressed: () {
         Navigator.pop(context);
@@ -86,11 +147,48 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _deleteButton(int id) {
+    return MaterialButton(
+      onPressed: () async {
+        Navigator.pop(context);
+        await context.read<AppDatabase>().deleteExpense(id);
+      },
+      child: const Text('Delete'),
+    );
+  }
+
+  Widget _editButton(Expense expense) {
+    return MaterialButton(
+      onPressed: () async {
+        if (titleController.text.isNotEmpty ||
+            (amountController.text.isNotEmpty &&
+                double.tryParse(amountController.text) != null)) {
+          Navigator.pop(context);
+          Expense editedExpense = Expense(
+            id: expense.id,
+            title: titleController.text.isNotEmpty
+                ? titleController.text
+                : expense.title,
+            amount: amountController.text.isNotEmpty
+                ? double.parse(amountController.text)
+                : expense.amount,
+            date: DateTime.now(),
+          );
+          await context.read<AppDatabase>().updateExpense(editedExpense);
+          titleController.clear();
+          amountController.clear();
+        }
+      },
+      child: const Text('Edit'),
+    );
+  }
+
   Widget _submitButton() {
     return MaterialButton(
       onPressed: () async {
         if (titleController.text.isNotEmpty &&
-            amountController.text.isNotEmpty) {
+            amountController.text.isNotEmpty &&
+            double.tryParse(amountController.text) != null) {
           Navigator.pop(context);
           Expense newExpense = Expense(
             title: titleController.text,
@@ -162,29 +260,15 @@ class _HomePageState extends State<HomePage> {
                     return Card(
                       margin: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 16),
-                      child: ListTile(
-                        title: Text(
-                          '${expense.title[0].toUpperCase()}${expense.title.substring(1)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Amount: ${NumberFormat.currency(symbol: "\$", locale: 'en_US', decimalDigits: 2).format(expense.amount)}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        trailing: Text(
-                          DateFormat('yyyy-MM-dd – hh:mm a')
-                              .format(expense.date),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 12,
-                          ),
-                        ),
+                      child: ExpenseListTile(
+                        title:
+                            '${expense.title[0].toUpperCase()}${expense.title.substring(1)}',
+                        subtitle:
+                            'Amount: ${NumberFormat.currency(symbol: "\$", locale: 'en_US', decimalDigits: 2).format(expense.amount)}',
+                        trailing: DateFormat('yyyy-MM-dd – hh:mm a')
+                            .format(expense.date),
+                        onDeletePressed: () => openDeleteExpenseBox(expense),
+                        onEditPressed: () => openEditExpenseBox(expense),
                       ),
                     );
                   },
