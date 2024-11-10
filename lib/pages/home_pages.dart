@@ -1,3 +1,4 @@
+import 'package:expense_tracker/bargraph/bar_graph.dart';
 import 'package:expense_tracker/helpers/database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,10 +19,13 @@ class _HomePageState extends State<HomePage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController amountController = TextEditingController();
 
+  Future<Map<int, double>>? _monthlyTotalFuture;
+
   @override
   void initState() {
     super.initState();
     Provider.of<AppDatabase>(context, listen: false).getAllExpenses();
+    refreshGraphData();
   }
 
   @override
@@ -29,6 +33,11 @@ class _HomePageState extends State<HomePage> {
     titleController.dispose();
     amountController.dispose();
     super.dispose();
+  }
+
+  void refreshGraphData() {
+    _monthlyTotalFuture = Provider.of<AppDatabase>(context, listen: false)
+        .getTotalExpensesForMonth();
   }
 
   void openNewExpenseBox() {
@@ -74,7 +83,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void openEditExpenseBox(Expense expense) {
-    // Pre-fill the controllers with existing values
     titleController.text = expense.title;
     amountController.text = expense.amount.toString();
 
@@ -208,6 +216,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Consumer<AppDatabase>(
       builder: (context, database, child) {
+        Future<int> startMonthFuture = database.getStartMonth();
+        Future<int> startYearFuture = database.getStartYear();
+
+        int currentMonth = DateTime.now().month;
+        int currentYear = DateTime.now().year;
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('Expenses'),
@@ -242,38 +256,94 @@ class _HomePageState extends State<HomePage> {
             onPressed: openNewExpenseBox,
             child: const Icon(Icons.add),
           ),
-          body: FutureBuilder<List<Expense>>(
-            future: database.getAllExpenses(),
+          body: FutureBuilder<List<int>>(
+            future: Future.wait([startMonthFuture, startYearFuture]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No expenses found'));
-              } else {
-                final expenses = snapshot.data!;
-                return ListView.builder(
-                  itemCount: expenses.length,
-                  itemBuilder: (context, index) {
-                    final expense = expenses[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
-                      child: ExpenseListTile(
-                        title:
-                            '${expense.title[0].toUpperCase()}${expense.title.substring(1)}',
-                        subtitle:
-                            'Amount: ${NumberFormat.currency(symbol: "\ksh", locale: 'en_KE', decimalDigits: 2).format(expense.amount)}',
-                        trailing: DateFormat('yyyy-MM-dd – hh:mm a')
-                            .format(expense.date),
-                        onDeletePressed: () => openDeleteExpenseBox(expense),
-                        onEditPressed: () => openEditExpenseBox(expense),
-                      ),
-                    );
-                  },
-                );
               }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              int startMonth = snapshot.data![0];
+              int startYear = snapshot.data![1];
+              int monthCount =
+                  (currentYear - startYear) * 12 + (currentMonth - startMonth);
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 250,
+                      child: FutureBuilder<Map<int, double>>(
+                        future: _monthlyTotalFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            final monthlyTotals = snapshot.data ?? {};
+                            List<double> monthlySummary = List.generate(
+                              monthCount,
+                              (index) =>
+                                  monthlyTotals[startMonth + index] ?? 0.0,
+                            );
+                            return MyBarGraph(
+                              monthlySummary: monthlySummary,
+                              startMonth: startMonth,
+                            );
+                          } else {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: FutureBuilder<List<Expense>>(
+                      future: database.getAllExpenses(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Center(child: Text('No expenses found'));
+                        } else {
+                          final expenses = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: expenses.length,
+                            itemBuilder: (context, index) {
+                              final expense = expenses[index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
+                                child: ExpenseListTile(
+                                  title:
+                                      '${expense.title[0].toUpperCase()}${expense.title.substring(1)}',
+                                  subtitle:
+                                      'Amount: ${NumberFormat.currency(symbol: "ksh", locale: 'en_KE', decimalDigits: 2).format(expense.amount)}',
+                                  trailing: DateFormat('yyyy-MM-dd – hh:mm a')
+                                      .format(expense.date),
+                                  onDeletePressed: () =>
+                                      openDeleteExpenseBox(expense),
+                                  onEditPressed: () =>
+                                      openEditExpenseBox(expense),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
             },
           ),
         );

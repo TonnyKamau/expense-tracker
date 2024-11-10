@@ -27,8 +27,12 @@ class ExpenseListTile extends StatelessWidget {
             onPressed: (context) =>
                 onEditPressed?.call(), // Modified to handle context
             icon: Icons.edit,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.surface,
           ),
           SlidableAction(
+            backgroundColor: Colors.red,
+            foregroundColor: Theme.of(context).colorScheme.surface,
             onPressed: (context) => onDeletePressed?.call(),
             icon: Icons.delete,
           ),
