@@ -16,11 +16,6 @@ class MyBarGraph extends StatefulWidget {
 
 class _MyBarGraphState extends State<MyBarGraph> {
   List<IndividualBar> barsData = [];
-  @override
-  void initState() {
-    super.initState();
-    initializeBarData();
-  }
 
   void initializeBarData() {
     barsData = List.generate(
@@ -34,6 +29,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
 
   @override
   Widget build(BuildContext context) {
+    initializeBarData();
     return BarChart(
       BarChartData(
         groupsSpace: 1,
@@ -85,40 +81,40 @@ class _MyBarGraphState extends State<MyBarGraph> {
     String text;
     switch (value.toInt()) {
       case 0:
-        text = 'Jan';
+        text = 'J';
         break;
       case 1:
-        text = 'Feb';
+        text = 'F';
         break;
       case 2:
-        text = 'Mar';
+        text = 'M';
         break;
       case 3:
-        text = 'Apr';
+        text = 'A';
         break;
       case 4:
-        text = 'May';
+        text = 'M';
         break;
       case 5:
-        text = 'Jun';
+        text = 'J';
         break;
       case 6:
-        text = 'Jul';
+        text = 'J';
         break;
       case 7:
-        text = 'Aug';
+        text = 'A';
         break;
       case 8:
-        text = 'Sep';
+        text = 'S';
         break;
       case 9:
-        text = 'Oct';
+        text = 'O';
         break;
       case 10:
-        text = 'Nov';
+        text = 'N';
         break;
       case 11:
-        text = 'Dec';
+        text = 'D';
         break;
       default:
         text = '';

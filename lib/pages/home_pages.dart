@@ -160,6 +160,7 @@ class _HomePageState extends State<HomePage> {
       onPressed: () async {
         Navigator.pop(context);
         await context.read<AppDatabase>().deleteExpense(id);
+        refreshGraphData();
       },
       child: const Text('Delete'),
     );
@@ -183,6 +184,7 @@ class _HomePageState extends State<HomePage> {
             date: DateTime.now(),
           );
           await context.read<AppDatabase>().updateExpense(editedExpense);
+          refreshGraphData();
           titleController.clear();
           amountController.clear();
         }
@@ -204,6 +206,7 @@ class _HomePageState extends State<HomePage> {
             date: DateTime.now(),
           );
           await context.read<AppDatabase>().createExpense(newExpense);
+          refreshGraphData();
           titleController.clear();
           amountController.clear();
         }
