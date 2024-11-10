@@ -3,7 +3,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ExpenseListTile extends StatelessWidget {
   final String title;
-  final String subtitle;
+  // final String subtitle;
   final String trailing;
   final VoidCallback? onDeletePressed;
   final VoidCallback? onEditPressed; // Changed type to VoidCallback
@@ -11,7 +11,7 @@ class ExpenseListTile extends StatelessWidget {
   const ExpenseListTile({
     super.key,
     required this.title,
-    required this.subtitle,
+    // required this.subtitle,
     required this.trailing,
     required this.onDeletePressed,
     required this.onEditPressed,
@@ -46,18 +46,18 @@ class ExpenseListTile extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
         ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontSize: 12,
-          ),
-        ),
+        // subtitle: Text(
+        //   subtitle,
+        //   style: TextStyle(
+        //     color: Theme.of(context).colorScheme.primary,
+        //     fontSize: 12,
+        //   ),
+        // ),
         trailing: Text(
           trailing,
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
-            fontSize: 12,
+            fontSize: 14,
           ),
         ),
       ),

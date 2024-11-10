@@ -5,7 +5,8 @@ class AppTheme {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           surface: const Color(0xff000000),
-           primary: const Color(0xffFFFFFF),
+          primary: const Color(0xffFFFFFF),
+          onPrimary: Colors.white70,
           brightness: Brightness.dark,
           seedColor: Colors.green,
         ),
@@ -15,8 +16,8 @@ class AppTheme {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           surface: const Color(0xffFFFFFF),
-       
-            primary: const Color(0xff000000),
+          primary: const Color(0xff000000),
+          onPrimary: Colors.grey.shade300,
           brightness: Brightness.light,
           seedColor: Colors.blue,
         ),

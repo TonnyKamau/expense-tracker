@@ -20,7 +20,7 @@ class AppDatabase extends ChangeNotifier {
   Future<void> _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE $tableName (
-        $columnId $idType PRIMARY KEY,
+        $columnId $idType,
         $columnTitle $textType,
         $columnAmount $realType,
         $columnDate $integerType
@@ -92,24 +92,51 @@ class AppDatabase extends ChangeNotifier {
   }
 
 // Calculate total expenses grouped by year and then by month
-  Future<Map<int, double>> getTotalExpensesForMonth() async {
+  Future<Map<String, double>> getTotalExpensesForMonth() async {
     final expenses = await getAllExpenses();
-    Map<int, double> monthlyTotalExpenses = {};
+    Map<String, double> monthlyTotalExpenses = {};
 
     for (var expense in expenses) {
-      int month = expense.date.month;
+      String yearMonth = '${expense.date.year}-${expense.date.month}';
 
       // Initialize the month if it doesn't exist
-      if (!monthlyTotalExpenses.containsKey(month)) {
-        monthlyTotalExpenses[month] = 0.0;
+      if (!monthlyTotalExpenses.containsKey(yearMonth)) {
+        monthlyTotalExpenses[yearMonth] = 0.0;
       }
 
       // Add the expense amount to the appropriate month, ignoring the year
-      monthlyTotalExpenses[month] =
-          monthlyTotalExpenses[month]! + expense.amount;
+      monthlyTotalExpenses[yearMonth] =
+          monthlyTotalExpenses[yearMonth]! + expense.amount;
     }
 
     return monthlyTotalExpenses;
+  }
+
+  //calculate current month total expenses
+  Future<double> getCurrentMonthTotalExpenses() async {
+    final expenses = await getAllExpenses();
+    double totalExpenses = 0.0;
+    final now = DateTime.now();
+
+    for (var expense in expenses) {
+      if (expense.date.month == now.month && expense.date.year == now.year) {
+        totalExpenses += expense.amount;
+      }
+    }
+    return totalExpenses;
+  }
+
+// You might also want to add this helper method to get expenses for any specific month and year
+  Future<double> getMonthlyExpenses(int month, int year) async {
+    final expenses = await getAllExpenses();
+    double totalExpenses = 0.0;
+
+    for (var expense in expenses) {
+      if (expense.date.month == month && expense.date.year == year) {
+        totalExpenses += expense.amount;
+      }
+    }
+    return totalExpenses;
   }
 
   Future<int> getStartMonth() async {
