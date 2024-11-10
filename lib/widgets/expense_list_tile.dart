@@ -19,45 +19,48 @@ class ExpenseListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Slidable(
-      endActionPane: ActionPane(
-        motion: const StretchMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) =>
-                onEditPressed?.call(), // Modified to handle context
-            icon: Icons.edit,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.surface,
-          ),
-          SlidableAction(
-            backgroundColor: Colors.red,
-            foregroundColor: Theme.of(context).colorScheme.surface,
-            onPressed: (context) => onDeletePressed?.call(),
-            icon: Icons.delete,
-          ),
-        ],
-      ),
-      child: ListTile(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 5.0),
+      child: Slidable(
+        endActionPane: ActionPane(
+          motion: const StretchMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) =>
+                  onEditPressed?.call(), // Modified to handle context
+              icon: Icons.edit,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.surface,
+            ),
+            SlidableAction(
+              backgroundColor: Colors.red,
+              foregroundColor: Theme.of(context).colorScheme.surface,
+              onPressed: (context) => onDeletePressed?.call(),
+              icon: Icons.delete,
+            ),
+          ],
         ),
-        // subtitle: Text(
-        //   subtitle,
-        //   style: TextStyle(
-        //     color: Theme.of(context).colorScheme.primary,
-        //     fontSize: 12,
-        //   ),
-        // ),
-        trailing: Text(
-          trailing,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontSize: 14,
+        child: ListTile(
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          // subtitle: Text(
+          //   subtitle,
+          //   style: TextStyle(
+          //     color: Theme.of(context).colorScheme.primary,
+          //     fontSize: 12,
+          //   ),
+          // ),
+          trailing: Text(
+            trailing,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontSize: 14,
+            ),
           ),
         ),
       ),

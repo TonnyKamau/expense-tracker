@@ -251,7 +251,19 @@ class _HomePageState extends State<HomePage> {
 
         return Scaffold(
           appBar: AppBar(
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 15.0),
+                child: Text(
+                  '${getCurrentMonthName()} $currentYear',
+                  style: const TextStyle(
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ],
             backgroundColor: Colors.transparent,
+            centerTitle: true,
             title: FutureBuilder<double>(
                 future: _calculateMonthlyTotalExpensesFuture,
                 builder: (context, snapshot) {
@@ -262,15 +274,7 @@ class _HomePageState extends State<HomePage> {
                     return Text('Error: ${snapshot.error}');
                   }
                   double totalExpenses = snapshot.data ?? 0.0;
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('ksh${totalExpenses.toStringAsFixed(2)}'),
-                      Text(
-                        '${getCurrentMonthName()} $currentYear',
-                      ),
-                    ],
-                  );
+                  return Text('ksh${totalExpenses.toStringAsFixed(2)}');
                 }),
           ),
           drawer: Drawer(
@@ -349,6 +353,7 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
                   ),
+                  const SizedBox(height: 25),
                   Expanded(
                     child: FutureBuilder<List<Expense>>(
                       future: database.getAllExpenses(),
