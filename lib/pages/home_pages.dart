@@ -271,8 +271,10 @@ class _HomePageState extends State<HomePage> {
 
               int startMonth = snapshot.data![0];
               int startYear = snapshot.data![1];
-              int monthCount =
-                  (currentYear - startYear) * 12 + (currentMonth - startMonth);
+              int monthCount = (currentYear - startYear) * 12 +
+                  currentMonth -
+                  startMonth +
+                  1;
 
               return Column(
                 children: [
