@@ -51,6 +51,7 @@ class _MyBarGraphState extends State<MyBarGraph> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: getBottomTitles,
+              reservedSize: 24.0,
             ),
           ),
         ),
@@ -62,7 +63,6 @@ class _MyBarGraphState extends State<MyBarGraph> {
                   BarChartRodData(
                     toY: data.y,
                     width: 16,
-                    borderRadius: BorderRadius.circular(4),
                   ),
                 ],
               ),
