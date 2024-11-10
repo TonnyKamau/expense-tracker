@@ -253,7 +253,7 @@ class _HomePageState extends State<HomePage> {
           appBar: AppBar(
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 15.0),
+                padding: const EdgeInsets.only(right: 20.0),
                 child: Text(
                   '${getCurrentMonthName()} $currentYear',
                   style: const TextStyle(
