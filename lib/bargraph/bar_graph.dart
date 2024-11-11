@@ -1,6 +1,7 @@
+import 'package:expensetracker/bargraph/individual_bar.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/bargraph/individual_bar.dart';
+
 import 'package:intl/intl.dart';
 
 class MyBarGraph extends StatefulWidget {

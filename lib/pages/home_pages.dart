@@ -1,9 +1,10 @@
-import 'package:expense_tracker/bargraph/bar_graph.dart';
-import 'package:expense_tracker/helpers/database.dart';
+import 'package:expensetracker/bargraph/bar_graph.dart';
+import 'package:expensetracker/helpers/database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../widgets/widgets.dart';

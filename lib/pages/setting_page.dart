@@ -1,4 +1,4 @@
-import 'package:expense_tracker/theming/theme_cubit.dart';
+import 'package:expensetracker/theming/theme_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

@@ -1,4 +1,4 @@
-import 'package:expense_tracker/helpers/database.dart';
+import 'package:expensetracker/helpers/database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
