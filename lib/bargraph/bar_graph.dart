@@ -39,11 +39,11 @@ class _MyBarGraphState extends State<MyBarGraph> {
   }
 
   double calculateUpperLimit(NumberFormat numberFormat) {
-    double upperLimit = 500;
+    double upperLimit = 1000;
     widget.monthlySummary.sort();
     upperLimit = widget.monthlySummary.last * 1.05;
-    if (upperLimit < 500) {
-      return 500;
+    if (upperLimit < 1000) {
+      return 1000;
     }
     return upperLimit;
   }

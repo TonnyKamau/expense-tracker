@@ -1,5 +1,6 @@
 import 'package:expensetracker/firebase_options.dart';
 import 'package:expensetracker/helpers/database.dart';
+import 'package:expensetracker/syncing/sync.dart';
 import 'package:expensetracker/syncing/syncing_cubit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseSyncService().requestNotificationPermission();
 
   // Initialize the HydratedBloc storage
   final storageDirectory = await getApplicationDocumentsDirectory();
