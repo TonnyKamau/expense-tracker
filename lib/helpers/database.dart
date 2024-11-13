@@ -24,7 +24,8 @@ class AppDatabase extends ChangeNotifier {
         $columnId $idType,
         $columnTitle $textType,
         $columnAmount $realType,
-        $columnDate $integerType
+        $columnDate $integerType,
+        lastModified $integerType
       )
     ''');
   }
@@ -42,53 +43,42 @@ class AppDatabase extends ChangeNotifier {
   Future<Expense> createExpense(Expense expense) async {
     final db = await instance.database;
     final id = await db.insert(tableName, expense.toJson());
-    notifyListeners(); // Notify listeners of the change
+    notifyListeners();
     return expense.copyWith(id: id);
   }
 
   Future<List<Expense>> getAllExpenses() async {
     final db = await instance.database;
-    final result = await db.query(
-      tableName,
-      orderBy: '$columnDate DESC',
-    );
+    final result = await db.query(tableName, orderBy: '$columnDate DESC');
     return result.map((json) => Expense.fromJson(json)).toList();
   }
 
   Future<Expense?> getExpense(int id) async {
     final db = await instance.database;
-    final result = await db.query(
-      tableName,
-      where: '$columnId = ?',
-      whereArgs: [id],
-    );
-
-    if (result.isNotEmpty) {
-      return Expense.fromJson(result.first);
-    }
+    final result =
+        await db.query(tableName, where: '$columnId = ?', whereArgs: [id]);
+    if (result.isNotEmpty) return Expense.fromJson(result.first);
     return null;
   }
 
   Future<int> updateExpense(Expense expense) async {
     final db = await instance.database;
+    final updatedExpense = expense.copyWith(lastModified: DateTime.now());
     final result = await db.update(
       tableName,
-      expense.toJson(),
+      updatedExpense.toJson(),
       where: '$columnId = ?',
       whereArgs: [expense.id],
     );
-    notifyListeners(); // Notify listeners of the change
+    notifyListeners();
     return result;
   }
 
   Future<int> deleteExpense(int id) async {
     final db = await instance.database;
-    final result = await db.delete(
-      tableName,
-      where: '$columnId = ?',
-      whereArgs: [id],
-    );
-    notifyListeners(); // Notify listeners of the change
+    final result =
+        await db.delete(tableName, where: '$columnId = ?', whereArgs: [id]);
+    notifyListeners();
     return result;
   }
 

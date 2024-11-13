@@ -1,3 +1,4 @@
+import 'package:expensetracker/syncing/syncing_cubit.dart';
 import 'package:expensetracker/theming/theme_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,6 +31,18 @@ class SettingsPage extends StatelessWidget {
                       ? Icons.dark_mode
                       : Icons.light_mode,
                 ),
+              );
+            },
+          ),
+          BlocBuilder<SyncingCubit, bool>(
+            builder: (context, isSyncing) {
+              return SwitchListTile(
+                title: const Text('Sync'),
+                value: isSyncing,
+                onChanged: (bool value) {
+                  context.read<SyncingCubit>().toggleSync(value);
+                },
+                secondary: const Icon(Icons.sync),
               );
             },
           ),

@@ -1,4 +1,7 @@
+import 'package:expensetracker/firebase_options.dart';
 import 'package:expensetracker/helpers/database.dart';
+import 'package:expensetracker/syncing/syncing_cubit.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -13,6 +16,9 @@ import 'theming/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize the HydratedBloc storage
   final storageDirectory = await getApplicationDocumentsDirectory();
@@ -37,6 +43,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => SyncingCubit()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, ThemeMode mode) {
