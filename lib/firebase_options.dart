@@ -3,7 +3,6 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -51,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions android = FirebaseOptions(
-    apiKey: dotenv.env['androidApiKey']!,
-    appId: dotenv.env['androidAppId']!,
-    messagingSenderId: dotenv.env['androidMessagingSenderId']!,
-    projectId: dotenv.env['androidProjectId']!,
-    storageBucket: dotenv.env['androidStorageBucket']!,
+    apiKey: 'AIzaSyDiFmCIeVXsuISQ2NSjDqAv76KKc8a54uM',
+    appId: '1:191535767674:android:9ec533f0300f50b94b9bc3',
+    messagingSenderId: '191535767674',
+    projectId: 'expense-tracker-40b5a',
+    storageBucket: 'expense-tracker-40b5a.firebasestorage.app',
   );
 
   static FirebaseOptions ios = FirebaseOptions(
-    apiKey: dotenv.env['iosApiKey']!,
-    appId: dotenv.env['iosAppId']!,
-    messagingSenderId: dotenv.env['iosMessagingSenderId']!,
-    projectId: dotenv.env['iosProjectId']!,
-    storageBucket: dotenv.env['iosStorageBucket']!,
-    iosBundleId: dotenv.env['iosBundleId']!,
+    apiKey: 'AIzaSyDiFmCIeVXsuISQ2NSjDqAv76KKc8a54uM',
+    appId: '1:191535767674:ios:1a4549feb941aac54b9bc3',
+    messagingSenderId: '191535767674',
+    projectId: 'expense-tracker-40b5a',
+    storageBucket: 'expense-tracker-40b5a.firebasestorage.app',
+    iosBundleId: 'com.example.expensetracker',
   );
 }

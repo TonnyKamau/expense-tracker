@@ -56,24 +56,75 @@ class FirebaseSyncService {
     if (token != null) print('FCM Token: $token');
   }
 
-  Future<void> syncFromFirebase() async {
-    _isSyncing = true;
-    final firebaseItems = await _firestore.collection('expenses').get();
-    final totalItems = firebaseItems.docs.length;
+  // Compare local and Firebase records to find differences
+  Future<Map<String, List<Expense>>> _compareRecords() async {
+    final localExpenses = await _localDb.getAllExpenses();
+    final firebaseSnapshot = await _firestore.collection('expenses').get();
 
-    for (var i = 0; i < totalItems; i++) {
-      final doc = firebaseItems.docs[i];
-      final firebaseExpense = _mapFirestoreDocToExpense(doc);
-      final localExpense = await _localDb.getExpense(firebaseExpense.id!);
+    final Map<int, Expense> localMap = {
+      for (var expense in localExpenses) expense.id!: expense
+    };
+    final Map<int, Expense> firebaseMap = {
+      for (var doc in firebaseSnapshot.docs)
+        int.parse(doc.id): _mapFirestoreDocToExpense(doc)
+    };
 
+    final toUpdate = <Expense>[];
+    final toCreate = <Expense>[];
+
+    // Check for updates and new records
+    firebaseMap.forEach((id, firebaseExpense) {
+      final localExpense = localMap[id];
       if (localExpense == null) {
-        await _localDb.createExpense(firebaseExpense);
+        toCreate.add(firebaseExpense);
       } else if (firebaseExpense.lastModified
           .isAfter(localExpense.lastModified)) {
-        await _localDb.updateExpense(firebaseExpense);
+        toUpdate.add(firebaseExpense);
       }
+    });
 
-      await _showProgressNotification(i + 1, totalItems);
+    // Check for local records that need to be pushed to Firebase
+    localMap.forEach((id, localExpense) {
+      final firebaseExpense = firebaseMap[id];
+      if (firebaseExpense == null ||
+          localExpense.lastModified.isAfter(firebaseExpense.lastModified)) {
+        toUpdate.add(localExpense);
+      }
+    });
+
+    return {
+      'create': toCreate,
+      'update': toUpdate,
+    };
+  }
+
+  Future<void> syncFromFirebase() async {
+    _isSyncing = true;
+    final differences = await _compareRecords();
+    final toCreate = differences['create'] ?? [];
+    final toUpdate = differences['update'] ?? [];
+    final totalItems = toCreate.length + toUpdate.length;
+
+    if (totalItems == 0) {
+      _isSyncing = false;
+      await _notificationsPlugin.cancel(0);
+      return;
+    }
+
+    var progress = 0;
+
+    // Handle new records
+    for (var expense in toCreate) {
+      await _localDb.createExpense(expense);
+      progress++;
+      await _showProgressNotification(progress, totalItems);
+    }
+
+    // Handle updates
+    for (var expense in toUpdate) {
+      await _localDb.updateExpense(expense);
+      progress++;
+      await _showProgressNotification(progress, totalItems);
     }
 
     _isSyncing = false;
@@ -82,14 +133,20 @@ class FirebaseSyncService {
 
   Future<void> syncToFirebase() async {
     _isSyncing = true;
-    final localItems = await _localDb.getAllExpenses();
-    final expensesCollection = _firestore.collection('expenses');
-    final totalItems = localItems.length;
+    final differences = await _compareRecords();
+    final toUpdate = differences['update'] ?? [];
 
-    for (var i = 0; i < totalItems; i++) {
-      final expense = localItems[i];
-      await _syncExpenseWithFirebase(expense, expensesCollection);
-      await _showProgressNotification(i + 1, totalItems);
+    if (toUpdate.isEmpty) {
+      _isSyncing = false;
+      await _notificationsPlugin.cancel(0);
+      return;
+    }
+
+    final expensesCollection = _firestore.collection('expenses');
+
+    for (var i = 0; i < toUpdate.length; i++) {
+      await _syncExpenseWithFirebase(toUpdate[i], expensesCollection);
+      await _showProgressNotification(i + 1, toUpdate.length);
     }
 
     _isSyncing = false;
@@ -111,25 +168,17 @@ class FirebaseSyncService {
     try {
       final docRef = expensesCollection.doc(expense.id.toString());
       final firebaseDoc = await docRef.get();
+      final data = {
+        'title': expense.title,
+        'amount': expense.amount,
+        'date': expense.date.millisecondsSinceEpoch,
+        'lastModified': expense.lastModified.millisecondsSinceEpoch,
+      };
 
       if (!firebaseDoc.exists) {
-        await docRef.set({
-          'title': expense.title,
-          'amount': expense.amount,
-          'date': expense.date.millisecondsSinceEpoch,
-          'lastModified': expense.lastModified.millisecondsSinceEpoch,
-        });
+        await docRef.set(data);
       } else {
-        final firebaseModified =
-            DateTime.fromMillisecondsSinceEpoch(firebaseDoc['lastModified']);
-        if (expense.lastModified.isAfter(firebaseModified)) {
-          await docRef.update({
-            'title': expense.title,
-            'amount': expense.amount,
-            'date': expense.date.millisecondsSinceEpoch,
-            'lastModified': expense.lastModified.millisecondsSinceEpoch,
-          });
-        }
+        await docRef.update(data);
       }
     } catch (e) {
       print('Error syncing expense ID: ${expense.id}, Error: $e');
@@ -145,7 +194,7 @@ class FirebaseSyncService {
 
   void startSyncing() {
     _syncTimer = Timer.periodic(
-        const Duration(minutes: 1), (_) async => await checkAndSync());
+        const Duration(minutes: 5), (_) async => await checkAndSync());
   }
 
   void stopSyncing() => _syncTimer?.cancel();
