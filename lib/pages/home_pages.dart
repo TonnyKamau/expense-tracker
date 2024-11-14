@@ -1,5 +1,6 @@
 import 'package:expensetracker/bargraph/bar_graph.dart';
 import 'package:expensetracker/helpers/database.dart';
+import 'package:expensetracker/syncing/sync.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController amountController = TextEditingController();
+  final FirebaseSyncService _syncService = FirebaseSyncService();
 
   Future<Map<String, double>>? _monthlyTotalFuture;
   Future<double>? _calculateMonthlyTotalExpensesFuture;
@@ -28,12 +30,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     Provider.of<AppDatabase>(context, listen: false).getAllExpenses();
     refreshData();
+    _syncService.onSyncComplete = refreshData;
+    _syncService.startSyncing();
   }
 
   @override
   void dispose() {
     titleController.dispose();
     amountController.dispose();
+    _syncService.stopSyncing();
     super.dispose();
   }
 
