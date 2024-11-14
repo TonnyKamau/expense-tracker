@@ -9,7 +9,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 class FirebaseSyncService {
   final AppDatabase _localDb = AppDatabase.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Function()? onSyncComplete;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -28,6 +27,29 @@ class FirebaseSyncService {
     await _notificationsPlugin.initialize(initializationSettings);
   }
 
+  Future<void> _showProgressNotification(int progress, int total) async {
+    if (!_isSyncing) return;
+
+    final androidDetails = AndroidNotificationDetails(
+      'sync_channel',
+      'Syncing Data',
+      channelDescription: 'Shows the sync progress with Firebase',
+      importance: Importance.max,
+      priority: Priority.high,
+      onlyAlertOnce: true,
+      showProgress: true,
+      maxProgress: total,
+      progress: progress,
+    );
+    final notificationDetails = NotificationDetails(android: androidDetails);
+    await _notificationsPlugin.show(
+      0,
+      'Syncing Expenses',
+      'Syncing data with Firebase',
+      notificationDetails,
+    );
+  }
+
   Future<void> requestNotificationPermission() async {
     await _firebaseMessaging.requestPermission();
     final token = await _firebaseMessaging.getToken();
@@ -37,14 +59,12 @@ class FirebaseSyncService {
   Future<void> syncFromFirebase() async {
     _isSyncing = true;
     final firebaseItems = await _firestore.collection('expenses').get();
-    final localItems = await _localDb.getAllExpenses();
-    final Map<int, Expense> localMap = {for (var e in localItems) e.id!: e};
     final totalItems = firebaseItems.docs.length;
 
-    int progress = 0;
-    for (var doc in firebaseItems.docs) {
+    for (var i = 0; i < totalItems; i++) {
+      final doc = firebaseItems.docs[i];
       final firebaseExpense = _mapFirestoreDocToExpense(doc);
-      final localExpense = localMap[firebaseExpense.id];
+      final localExpense = await _localDb.getExpense(firebaseExpense.id!);
 
       if (localExpense == null) {
         await _localDb.createExpense(firebaseExpense);
@@ -53,10 +73,7 @@ class FirebaseSyncService {
         await _localDb.updateExpense(firebaseExpense);
       }
 
-      progress++;
-      if (progress % 10 == 0) {
-        await _showProgressNotification(progress, totalItems);
-      }
+      await _showProgressNotification(i + 1, totalItems);
     }
 
     _isSyncing = false;
@@ -69,13 +86,10 @@ class FirebaseSyncService {
     final expensesCollection = _firestore.collection('expenses');
     final totalItems = localItems.length;
 
-    int progress = 0;
-    for (var expense in localItems) {
+    for (var i = 0; i < totalItems; i++) {
+      final expense = localItems[i];
       await _syncExpenseWithFirebase(expense, expensesCollection);
-      progress++;
-      if (progress % 10 == 0) {
-        await _showProgressNotification(progress, totalItems);
-      }
+      await _showProgressNotification(i + 1, totalItems);
     }
 
     _isSyncing = false;
@@ -122,36 +136,16 @@ class FirebaseSyncService {
     }
   }
 
-  Future<void> _showProgressNotification(int progress, int total) async {
-    if (!_isSyncing) return;
-
-    final androidDetails = AndroidNotificationDetails(
-      'sync_channel',
-      'Syncing Data',
-      channelDescription: 'Shows the sync progress with Firebase',
-      importance: Importance.max,
-      priority: Priority.high,
-      onlyAlertOnce: true,
-      showProgress: true,
-      maxProgress: total,
-      progress: progress,
-    );
-    final notificationDetails = NotificationDetails(android: androidDetails);
-    await _notificationsPlugin.show(0, 'Syncing Expenses',
-        'Syncing data with Firebase', notificationDetails);
-  }
-
   Future<void> checkAndSync() async {
     if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
       await syncFromFirebase();
       await syncToFirebase();
-      onSyncComplete?.call();
     }
   }
 
   void startSyncing() {
     _syncTimer = Timer.periodic(
-        const Duration(minutes: 5), (_) async => await checkAndSync());
+        const Duration(minutes: 1), (_) async => await checkAndSync());
   }
 
   void stopSyncing() => _syncTimer?.cancel();
